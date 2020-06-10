@@ -1,9 +1,9 @@
-import { map, mergeMap, take, timeout } from 'rxjs/operators';
+import { map, mergeMap, switchMap, take } from 'rxjs/operators';
 import { interval } from 'rxjs';
 import clock = jasmine.clock;
-import { mergeMapResultCounter, MessageTimeout } from './mocks/async-data';
+import { mergeMapResultCounter, MessageTimeout, switchMapResultCounter } from './mocks/async-data';
 
-describe('test tiemouts with numeric streams', () => {
+describe('test timeouts with numeric streams', () => {
   let testResultLastStream = '';
   const testCallbacks = {
     subscribeCounter: () => {}
@@ -30,8 +30,21 @@ describe('test tiemouts with numeric streams', () => {
       testCallbacks.subscribeCounter();
     });
     clock().tick(MessageTimeout);
-    expect(testCallbacks.subscribeCounter).toHaveBeenCalledTimes(iterationStreams * iterationStreams);
+    expect(testCallbacks.subscribeCounter).toHaveBeenCalledTimes(16); // iterationStreams * iterationStreams
     expect(testResultLastStream.trim()).toEqual(mergeMapResultCounter.trim());
+  });
+
+  // de cada iteracion solo se resolvera si el ciclo corto (el interno, el segundo: longStream) no se ve interrumpido po un nuevo ciclo largo
+  it('combine stream with switch map', () => {
+    longStream.pipe(
+      switchMap((long: number) => shortStream.pipe(map((short: number) => `${long} : ${short}`)))
+    ).subscribe((resultMap: string) => {
+      testResultLastStream += resultMap;
+      testCallbacks.subscribeCounter();
+    });
+    clock().tick(MessageTimeout);
+    expect(testCallbacks.subscribeCounter).toHaveBeenCalledTimes(7); // iterationStreams * 2
+    expect(testResultLastStream.trim()).toEqual(switchMapResultCounter.trim());
   });
 });
 
