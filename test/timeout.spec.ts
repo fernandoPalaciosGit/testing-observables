@@ -19,6 +19,7 @@ describe('test timeouts with numeric streams', () => {
 
   afterEach(() => {
     clock().uninstall();
+    testResultLastStream = '';
   });
 
   // se resolverán todos los observables, pero en sin respetar el orden de llegada (el quien llega antes se resuelve)

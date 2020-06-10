@@ -4,7 +4,7 @@ import { delay } from 'rxjs/operators';
 export const getAsyncMessage = (message: string) =>
   of(`retrieved new data from external resource ${message}`).pipe(delay(10));
 
-export const MessageTimeout = 99999;
+export const MessageTimeout = 999999;
 
 export const mergeMapResultCounter =
   '0 : 0' +
