@@ -1,6 +1,7 @@
 import { BehaviorSubject, from, of } from 'rxjs';
 import { concatMap, delay, mergeMap, switchMap } from 'rxjs/operators';
 import { getAsyncMessage, MessageTimeout } from './mocks/async-data';
+import clock = jasmine.clock;
 
 describe('get data from async observables', () => {
   const COUNTER = 3;
@@ -16,10 +17,15 @@ describe('get data from async observables', () => {
   };
 
   beforeEach(() => {
+    clock().install();
     spyOn(testCallbacks, 'subscribeCounter');
   });
 
-  it('merge with counter', (done) => {
+  afterEach(() => {
+    clock().uninstall();
+  });
+
+  it('merge with counter', () => {
     from(testCallbacks.getCounterRange(COUNTER)).pipe(
       mergeMap((value: number) => getAsyncMessage(value.toString()))
     ).subscribe((resultMap: string) => {
@@ -27,13 +33,11 @@ describe('get data from async observables', () => {
       testCallbacks.subscribeCounter();
     });
 
-    setTimeout(() => {
-      expect(testCallbacks.subscribeCounter).toHaveBeenCalledTimes(COUNTER);
-      done();
-    }, MessageTimeout);
+    clock().tick(MessageTimeout);
+    expect(testCallbacks.subscribeCounter).toHaveBeenCalledTimes(COUNTER);
   });
 
-  it('concat with counter', (done) => {
+  it('concat with counter', () => {
     from(testCallbacks.getCounterRange(COUNTER)).pipe(
       concatMap((value: number) => getAsyncMessage(value.toString()))
     ).subscribe((resultMap: string) => {
@@ -41,13 +45,11 @@ describe('get data from async observables', () => {
       testCallbacks.subscribeCounter();
     });
 
-    setTimeout(() => {
-      expect(testCallbacks.subscribeCounter).toHaveBeenCalledTimes(COUNTER);
-      done();
-    }, MessageTimeout);
+    clock().tick(MessageTimeout);
+    expect(testCallbacks.subscribeCounter).toHaveBeenCalledTimes(COUNTER);
   });
 
-  it('switch with counter', (done) => {
+  it('switch with counter', () => {
     let testLastStream = '';
     streamMessages.pipe(
       switchMap((value: number) => getAsyncMessage(value.toString()))
@@ -56,15 +58,12 @@ describe('get data from async observables', () => {
       testCallbacks.subscribeCounter();
     });
     testCallbacks.pushStreamMessage(); // init stream broadcast
-    setTimeout(() => {
-      // just resolve once, because switchMap remove those subscriptions that launches at same time, and only gets the last one
-      expect(testCallbacks.subscribeCounter).toHaveBeenCalledTimes(1);
-      expect(testLastStream).toContain('retrieved new data from external resource 2');
-      done();
-    }, MessageTimeout);
+    clock().tick(MessageTimeout);
+    expect(testCallbacks.subscribeCounter).toHaveBeenCalledTimes(1);
+    expect(testLastStream).toContain('retrieved new data from external resource 2');
   });
 
-  it('test', (done) => {
+  it('test', () => {
     let testLastStream = '';
     let counterStream = 0;
     const filters = ['brand=porsche', 'model=911', 'horsepower=389', 'color=red'];
@@ -74,7 +73,6 @@ describe('get data from async observables', () => {
         delay(10)
       );
     };
-
     const applyFilters = () => {
       filters.forEach((filter, index) => {
 
@@ -88,6 +86,7 @@ describe('get data from async observables', () => {
         activeFilters.next(newFilters);
       });
     };
+
     activeFilters.pipe(
       switchMap(param => getData(param))
     ).subscribe(val => {
@@ -95,10 +94,9 @@ describe('get data from async observables', () => {
       testLastStream = val;
     });
     applyFilters();
-    setTimeout(() => {
-      expect(counterStream).toEqual(1); // just subscribes once, because switchMap
-      expect(testLastStream).toEqual('retrieved new data with params ?brand=porsche&model=911&horsepower=389&color=red'); // but gets all data, from last subscription
-      done();
-    }, MessageTimeout);
+
+    clock().tick(MessageTimeout);
+    expect(counterStream).toEqual(1); // just subscribes once, because switchMap
+    expect(testLastStream).toEqual('retrieved new data with params ?brand=porsche&model=911&horsepower=389&color=red'); // but gets all data, from last subscription
   });
 });
