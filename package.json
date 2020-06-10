@@ -4,7 +4,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "test": "npm run lint && karma start",
+    "test": "karma start --browsers ChromeHeadless --log-level disable",
     "lint": "tslint --format stylish --project tsconfig.json"
   },
   "devDependencies": {
@@ -19,5 +19,8 @@
     "tslint": "^5.10.0",
     "tslint-config-standard-plus": "^1.0.0",
     "typescript": "^2.8.3"
+  },
+  "dependencies": {
+    "rxjs": "^6.5.5"
   }
 }
