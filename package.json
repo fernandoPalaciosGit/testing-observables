@@ -15,7 +15,7 @@
     "karma-chrome-launcher": "^2.2.0",
     "karma-jasmine": "^1.1.2",
     "karma-spec-reporter": "^0.0.32",
-    "karma-typescript": "^3.0.12",
+    "karma-typescript": "^5.5.3",
     "tslint": "^5.10.0",
     "tslint-config-standard-plus": "^1.0.0",
     "typescript": "^2.8.3"
